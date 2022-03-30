@@ -1,0 +1,17 @@
+[Foo] !!!
+    - bar
+    - bee
+    - loo
+
+[Bee]
+    - foo
+    - bar
+    - lee
+
+[Hoo] !!!
+    - boo
+    - loo
+    - baa
+
+[Ree] !!
+    - bee
