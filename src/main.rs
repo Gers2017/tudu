@@ -1,7 +1,8 @@
 #![allow(unused)]
 use std::env;
 use tudu::*;
-use tudu::todo::*;
+use tudu::todo::Todo;
+use tudu::todo::action::*;
 use tudu::files::*;
 
 fn main() {
