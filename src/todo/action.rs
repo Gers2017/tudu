@@ -1,4 +1,3 @@
-use crate::Config;
 use crate::todo::{Todo, is_todo_title, parse_title};
 use crate::files::{read_file, write_file};
 
@@ -16,7 +15,7 @@ pub fn get_todos(filename: &str) -> Vec<Todo> {
     let temp_lines = lines.clone();
     let titles = temp_lines.iter()
     .filter(|l| is_todo_title(l))
-    .map(|l| parse_title(l.to_string()));
+    .map(|l| parse_title(l.as_ref()));
     
     let mut todos: Vec<Todo> = titles
     .map(|(title, priority)| Todo::new(title, priority))
@@ -48,6 +47,28 @@ fn todos_to_text(todos: &Vec<Todo>) -> String{
     return str_todos.join("\n");
 }
 
+pub fn include_todos_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
+    return todos.iter()
+    .filter(|todo| todo.match_title(title))
+    .cloned()
+    .collect::<Vec<Todo>>();
+}
+
+pub fn exclude_todos_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
+    return todos.clone().iter()
+    .filter(|todo| !todo.match_title(&title))
+    .cloned()
+    .collect::<Vec<Todo>>();
+}
+
+pub fn save_todos(todos: Vec<Todo>, filename: &str){
+    let content = todos_to_text(&todos);
+    let result = write_file(filename, content.as_str());
+    if result.is_err() {
+        eprintln!("{}", result.unwrap_err()); 
+    } 
+}
+
 pub fn print_all_todos(filename: &str) {
     let todos = get_todos(filename);
     println!("{}", todos_to_text(&todos));
@@ -74,9 +95,7 @@ pub fn print_todo_by_title(args: &[String], filename: &str){
     println!("❓ Searching by title {}...", title);
 
     let todos: Vec<Todo> = get_todos(filename);
-    let selected_todos = todos.iter()
-    .filter(|todo| todo.match_title(&title))
-    .collect::<Vec<&Todo>>();
+    let selected_todos = include_todos_by_title(&todos, &title);
     
     if selected_todos.is_empty() {
         eprintln!("{} \"{}\"\n", MISSING_TODO_ERR, title);
@@ -87,19 +106,11 @@ pub fn print_todo_by_title(args: &[String], filename: &str){
     println!("{}", first.to_string());
 }
 
-pub fn save_todos(todos: Vec<Todo>, filename: &str){
-    let content = todos_to_text(&todos);
-    let result = write_file(filename, content.as_str());
-    if result.is_err() {
-        eprintln!("{}", result.unwrap_err()); 
-    } 
-}
-
-pub fn add_todo(config: Config, todo: Todo){
-    let mut todos = get_todos(&config.todofile);
+pub fn add_todo(filename: &str, todo: Todo){
+    let mut todos = get_todos(filename);
     todos.push(todo);
     sort_todos(&mut todos);
-    save_todos(todos, &config.todofile);
+    save_todos(todos, filename);
 }
 
 pub fn remove_all_todos(filename: &str) {
@@ -132,12 +143,7 @@ pub fn remove_todo_by_title(args: &[String], filename: &str){
     println!("❓ Searching by title {}...", title);
 
     let todos = get_todos(filename);
-    let todos_to_save = todos.clone().iter()
-    .filter(|todo| {
-        return !todo.match_title(&title);
-    })
-    .cloned()
-    .collect::<Vec<Todo>>();
+    let todos_to_save = exclude_todos_by_title(&todos, &title);
 
     for t in todos.iter() {
         if t.match_title(&title) {

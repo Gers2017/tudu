@@ -8,7 +8,10 @@ pub struct Todo {
 }
 
 impl Todo {
-    pub fn new(title: String, priority: u32) -> Todo{
+    pub fn new(mut title: String, priority: u32) -> Todo {
+        if !title.starts_with("[") && !title.ends_with("]") {
+            title = format!("[{}]", title);
+        }
         Todo{title, priority, items: vec![]}
     }
     
@@ -27,11 +30,11 @@ impl Todo {
     }
 }
 
-fn trim_title(title: String) -> String {
+pub fn trim_title(title: String) -> String {
     title.trim_matches(|c| c == '[' || c == ']').to_string()
 }
 
-fn parse_title(line: String) -> (String, u32) {
+pub fn parse_title(line: &str) -> (String, u32) {
     let index = line.chars().position(|c| c == ']').unwrap();
     let title = &line[..index + 1];
     let priority = line.chars().filter(|c| c == &'!').count() as u32;
