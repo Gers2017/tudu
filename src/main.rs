@@ -61,7 +61,7 @@ fn handle_add_cmd(config: Config){
             };
         }
         
-        println!("Addding the following todo:\n{}", todo.to_string());
+        println!("Addding the following todo:\n\n{}", todo.to_string());
         println!("Continue? (y/n) ");
         let is_ok: String = read!("{}\n");
     
@@ -84,6 +84,8 @@ fn handle_rm_cmd(config: Config){
     let subcommand = config.args.get(2).unwrap();
 
     match subcommand.as_str() {
+        "all" | "-A" => remove_all_todos( &config.todofile),
+        "primary" | "-P" => remove_primary_todo(&config.todofile),
         "title" | "-T" => remove_todo_by_title(&config.args, &config.todofile),
         _ => {
             eprintln!("Unknown command \"{}\"", subcommand);

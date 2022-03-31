@@ -2,6 +2,9 @@ use crate::Config;
 use crate::todo::{Todo, is_todo_title, parse_title};
 use crate::files::{read_file, write_file};
 
+const MISSING_TODO_ERR: &str = "❌ No todo with title";
+const EMPTY_TODO_ERR: &str = "❌ Empty todo file. No todos in";
+
 pub fn get_todos(filename: &str) -> Vec<Todo> {
     let text = read_file(filename).unwrap(); // raw text
     // only lines with content
@@ -38,6 +41,9 @@ fn sort_todos(todos: &mut Vec<Todo>){
 }
 
 fn todos_to_text(todos: &Vec<Todo>) -> String{
+    if todos.is_empty() {
+        return "".to_string();
+    }
     let str_todos = todos.iter().map(|todo| todo.to_string()).collect::<Vec<_>>();
     return str_todos.join("\n");
 }
@@ -50,7 +56,7 @@ pub fn print_all_todos(filename: &str) {
 pub fn print_primary_todo(filename: &str) {
     let todos: Vec<Todo> = get_todos(filename);
     if todos.is_empty() {
-        eprintln!("❌ No todos in {}", filename);
+        eprintln!("{} {}\n", EMPTY_TODO_ERR, filename);
         return;
     }
 
@@ -73,7 +79,7 @@ pub fn print_todo_by_title(args: &[String], filename: &str){
     .collect::<Vec<&Todo>>();
     
     if selected_todos.is_empty() {
-        eprintln!("❌ No todo with title {}", title);
+        eprintln!("{} \"{}\"\n", MISSING_TODO_ERR, title);
         return;
     }
 
@@ -96,6 +102,25 @@ pub fn add_todo(config: Config, todo: Todo){
     save_todos(todos, &config.todofile);
 }
 
+pub fn remove_all_todos(filename: &str) {
+    save_todos(vec![], &filename);
+}
+
+pub fn remove_primary_todo(filename: &str){
+    let todos: Vec<Todo> = get_todos(filename);
+    if todos.is_empty() {
+        eprintln!("{} {}\n", EMPTY_TODO_ERR, filename);
+        return;
+    }
+
+    let slice = &todos.as_slice()[1..];
+    let todos_to_save = slice.to_vec();
+
+    let first = todos.first().unwrap();
+    println!("{} was removed\n", first.title);
+    save_todos(todos_to_save, filename);
+}
+
 pub fn remove_todo_by_title(args: &[String], filename: &str){
     if args.len() < 4 {
         eprintln!("missing <todo-title> parameter\nusage tudu rm <todo-title>");
@@ -116,12 +141,12 @@ pub fn remove_todo_by_title(args: &[String], filename: &str){
 
     for t in todos.iter() {
         if t.match_title(&title) {
-            println!("Deleting todo {}", t.title);
+            println!("{} was removed\n", t.title);
         }
     }
     
     if todos_to_save.len() == todos.len() {
-        eprintln!("❌ No todo with title {}", title);
+        eprintln!("{} \"{}\"\n", MISSING_TODO_ERR, title);
         return;
     }
     
