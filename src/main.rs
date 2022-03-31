@@ -4,6 +4,7 @@ use tudu::*;
 use tudu::todo::Todo;
 use tudu::todo::action::*;
 use tudu::files::*;
+use text_io::read;
 
 fn main() {
     let todofile = get_todofile();
@@ -14,47 +15,79 @@ fn main() {
         "get" => handle_get_cmd(config),
         "add" => handle_add_cmd(config),
         "rm" => handle_rm_cmd(config),
-        _ => eprintln!("{}", AVAILABLE_CMDS),
+        _ => eprintln!("{}\n", AVAILABLE_CMDS),
     }
 }
 
 fn handle_get_cmd(config: Config){
-    if let Some(subcommand) = config.args.get(2) {
-        let filename = config.todofile;
-        match subcommand.as_str() {
-            "all" => print_all_todos(&filename),
-            "primary" => print_primary_todo(&filename),
-            "title" => print_todo_by_title(&config.args, &filename),
-            _ => {
-                eprintln!("\"{}\"", subcommand);
-                eprintln!("{}", GET_SUBCMDS);
-            },
-        }
-    } else {
-        eprintln!("{}", GET_SUBCMDS);
+    if config.args.len() < 2 {
+        eprintln!("{}\n", GET_SUBCMDS);
+        return;
+    }
+
+    let subcommand = config.args.get(2).unwrap();
+
+    let filename = config.todofile;
+    match subcommand.as_str() {
+        "all" | "-A" => print_all_todos(&filename),
+        "primary" | "-P" => print_primary_todo(&filename),
+        "title" | "-T" => print_todo_by_title(&config.args, &filename),
+        _ => {
+            eprintln!("Unknown command \"{}\"", subcommand);
+            eprintln!("{}\n", GET_SUBCMDS);
+        },
     }
 }
 
 fn handle_add_cmd(config: Config){
-    let mut todo = Todo::new("[Hello mother]".to_string(), 22);
-    todo.add_item("refactor tudu code".to_string());
-    todo.add_item("make a readme".to_string());
-    add_todo(config, todo);
+    loop {
+        println!("Name of the todo?");
+        let name: String = read!("{}\n");
+        
+        println!("Priority of the todo?");
+        let priority: u32 = read!("{}\n");
+    
+        let title = format!("[{}]", name);
+        let mut todo: Todo = Todo::new(title, priority);
+        
+        print!("Adding details to the todo. ");
+        println!("Exit by typing \"exit\" or \"quit\"");
+    
+        loop {
+            let item: String = read!("{}\n");
+            match item.to_lowercase().as_str() {
+                "exit" | "quit" => break,
+                _ => todo.add_item(item)
+            };
+        }
+        
+        println!("Addding the following todo:\n{}", todo.to_string());
+        println!("Continue? (y/n) ");
+        let is_ok: String = read!("{}\n");
+    
+        match is_ok.to_lowercase().as_str() {
+            "y" | "yes" =>  {
+                add_todo(config, todo);
+                break;
+            },
+            _ => println!("Re-running add command\n")
+        };
+    }
 }
 
 fn handle_rm_cmd(config: Config){
     if config.args.len() < 2 {
-        eprintln!("{}", RM_SUBCMDS);
+        eprintln!("{}\n", RM_SUBCMDS);
         return;
     }
 
     let subcommand = config.args.get(2).unwrap();
 
     match subcommand.as_str() {
-        "title" => remove_todo_by_title(&config.args, &config.todofile),
+        "title" | "-T" => remove_todo_by_title(&config.args, &config.todofile),
         _ => {
             eprintln!("Unknown command \"{}\"", subcommand);
-            eprintln!("{}", RM_SUBCMDS);
+            eprintln!("{}\n", RM_SUBCMDS);
         },
     }
 }

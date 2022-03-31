@@ -19,19 +19,12 @@ impl Todo {
     pub fn match_title(&self, title: &str) -> bool {
         trim_title(self.title.to_lowercase()) == trim_title(title.to_lowercase())
     }
-    
-    pub fn print(&self) {
-        println!("{} ! priority: {}", self.title, self.priority);
-        for i in &self.items{
-            println!("  {}", i);
-        }
-    }
-    
+        
     pub fn to_string(&self) -> String {
         let bangs = "!".repeat(*&self.priority as usize);
         let todos = &self.items.iter().map(|i| format!("  {}", i)).collect::<Vec<_>>();
         return format!("{} {}\n{}\n", &self.title, bangs, todos.join("\n"));
-    }    
+    }
 }
 
 fn trim_title(title: String) -> String {

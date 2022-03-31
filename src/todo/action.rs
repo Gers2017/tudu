@@ -37,19 +37,25 @@ fn sort_todos(todos: &mut Vec<Todo>){
     todos.sort_by(|a, b| b.priority.cmp(&a.priority));
 }
 
+fn todos_to_text(todos: &Vec<Todo>) -> String{
+    let str_todos = todos.iter().map(|todo| todo.to_string()).collect::<Vec<_>>();
+    return str_todos.join("\n");
+}
 
 pub fn print_all_todos(filename: &str) {
     let todos = get_todos(filename);
-    for t in  todos {
-        t.print();
-    }
+    println!("{}", todos_to_text(&todos));
 }
 
 pub fn print_primary_todo(filename: &str) {
     let todos: Vec<Todo> = get_todos(filename);
-    if let Some(first) = todos.first() {
-        first.print();
+    if todos.is_empty() {
+        eprintln!("❌ No todos in {}", filename);
+        return;
     }
+
+    let first = todos.first().unwrap();
+    println!("{}", first.to_string());
 }
 
 pub fn print_todo_by_title(args: &[String], filename: &str){
@@ -68,17 +74,16 @@ pub fn print_todo_by_title(args: &[String], filename: &str){
     
     if selected_todos.is_empty() {
         eprintln!("❌ No todo with title {}", title);
+        return;
     }
 
-    if let Some(first) = selected_todos.first() {
-        first.print();
-    }
+    let first = selected_todos.first().unwrap();
+    println!("{}", first.to_string());
 }
 
 pub fn save_todos(todos: Vec<Todo>, filename: &str){
-    let str_todos = todos.iter().map(|todo| todo.to_string()).collect::<Vec<_>>();
-    let contents = str_todos.join("\n");
-    let result = write_file(filename, contents.as_str());
+    let content = todos_to_text(&todos);
+    let result = write_file(filename, content.as_str());
     if result.is_err() {
         eprintln!("{}", result.unwrap_err()); 
     } 
