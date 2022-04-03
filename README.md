@@ -1,10 +1,12 @@
 # Tudu
 
-Command line tool to keep track of your todos
+Command line tool to keep track of your tasks/todos
+
+[get cmd in terminal](tudu.gif)
 
 ### Schema
 
-```toml
+```
 [Commit to master]!!!!
 - fix typo
 - read the docs
@@ -25,25 +27,36 @@ Available commands
 
 ### Get subcommands
 
-```bash
+```
 tudu get -A | tudu get all
 ```
-```bash
+```
 tudu get -P | tudu get primary
 ```
-```bash
+```
 tudu get -T 'task' | tudu get title 'task'
 ```
 
 ### Rm subcommands
 
-```bash
+```
 tudu rm -A | tudu rm all
 ```
-```bash
+```
 tudu rm -P | tudu rm primary
 ```
-```bash
+```
 tudu rm -T 'task' | tudu rm title 'task'
 ```
 
+### Help flag
+
+The help flag is available for the get and rm command.
+Use the `--help` or `-h` flag as the following example
+
+```
+tudu rm -A -h | tudu rm all --help
+```
+```
+tudu get title -h | tudu get -A --help
+```
