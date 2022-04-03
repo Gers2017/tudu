@@ -13,12 +13,11 @@ pub struct Config {
     pub todofile: String,
 }
 
-use std::process;
 impl Config {
     pub fn new(args: &[String], todofile: String) -> Config {
-        if args.len() < 2 {
+        if args.len() <= 1 {
             eprintln!("{}", AVAILABLE_CMDS);
-            process::exit(1);
+            std::process::exit(1);
         }
         
         let subcommand = args[1].clone();    
@@ -26,19 +25,37 @@ impl Config {
     }
 }
 
+fn is_help_flag(flag: &str) -> bool {
+    match flag {
+        "-h" | "--help" => true,
+        _ => false
+    }
+}
+
 pub fn handle_get_cmd(config: Config){
-    if config.args.len() < 2 {
+    if config.args.len() <= 2 {
         eprintln!("{}\n", GET_SUBCMDS);
         return;
     }
 
     let subcommand = config.args.get(2).unwrap();
-
+    let flag = config.args.get(3).map(|x| x.as_str()).unwrap_or("");
     let filename = config.todofile;
+    let is_help = is_help_flag(flag);
+    
     match subcommand.as_str() {
-        "all" | "-A" => print_all_todos(&filename),
-        "primary" | "-P" => print_primary_todo(&filename),
-        "title" | "-T" => print_todo_by_title(&config.args, &filename),
+        "all" | "-A" => {
+            if is_help { println!("{}", GET_ALL_HELP); return; }
+            print_all_todos(&filename);
+        },
+        "primary" | "-P" => {
+            if is_help { println!("{}", GET_PRIMARY_HELP); return; }
+            print_primary_todo(&filename);
+        },
+        "title" | "-T" => {
+            if is_help { println!("{}", GET_PRIMARY_HELP); return; }
+            print_todo_by_title(&config.args, &filename)
+        },
         _ => {
             eprintln!("Unknown command \"{}\"", subcommand);
             eprintln!("{}\n", GET_SUBCMDS);
@@ -83,17 +100,32 @@ pub fn handle_add_cmd(config: Config){
 }
 
 pub fn handle_rm_cmd(config: Config){
-    if config.args.len() < 2 {
+    if config.args.len() <= 2 {
         eprintln!("{}\n", RM_SUBCMDS);
         return;
     }
 
     let subcommand = config.args.get(2).unwrap();
+    let flag = match config.args.get(3) {
+        Some(x) => x.as_str(),
+        None => "",
+    };
+
+    let is_help = is_help_flag(flag);
 
     match subcommand.as_str() {
-        "all" | "-A" => remove_all_todos( &config.todofile),
-        "primary" | "-P" => remove_primary_todo(&config.todofile),
-        "title" | "-T" => remove_todo_by_title(&config.args, &config.todofile),
+        "all" | "-A" => {
+            if is_help { println!("{}", RM_ALL_HELP); return; }
+            remove_all_todos( &config.todofile);
+        },
+        "primary" | "-P" => {
+            if is_help { println!("{}", RM_PRIMARY_HELP); return; }
+            remove_primary_todo(&config.todofile);
+        },
+        "title" | "-T" => {
+            if is_help { println!("{}", RM_TITLE_HELP); return; }
+            remove_todo_by_title(&config.args, &config.todofile);
+        },
         _ => {
             eprintln!("Unknown command \"{}\"", subcommand);
             eprintln!("{}\n", RM_SUBCMDS);
