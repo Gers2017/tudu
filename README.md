@@ -2,7 +2,7 @@
 
 Command line tool to keep track of your tasks/todos
 
-[get cmd in terminal](tudu.gif)
+![get cmd in terminal](tudu.gif)
 
 ### Schema
 
