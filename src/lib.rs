@@ -104,12 +104,15 @@ pub fn handle_rm_cmd(config: Config){
 #[cfg(test)]
 mod tests {
     use super::*;
-    const FILENAME:&str = "test.tudu";
+    use files::{write_file, delete_file};
+    const FILENAME:&str = "__test.tudu";
 
     #[test]
     fn test_get_todos_from_file(){
+        assert!(write_file(FILENAME, "[A]!!!\na1\na2\na3\n[B]\nb1\nb2").is_ok(), "should create todo file");
         let todos = get_todos(FILENAME);
         assert!(todos.len() > 0, "todos should not be empty");
+        assert!(delete_file(FILENAME).is_ok(), "should delete todo file");
     }
     
     #[test]

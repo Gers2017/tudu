@@ -31,6 +31,11 @@ pub fn write_file(filename: &str, contents: &str) -> io::Result<()> {
     Ok(())
 }
 
+pub fn delete_file(filename: &str) -> io::Result<()> {
+    fs::remove_file(filename)?;
+    Ok(())
+}
+
 pub fn get_todofile() -> String {
     let tudu_files = get_tudufiles().unwrap_or(vec![]);
     if tudu_files.is_empty() {
