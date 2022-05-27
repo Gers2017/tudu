@@ -1,6 +1,8 @@
 pub mod utils;
 pub mod todo;
 pub mod files;
+
+use std::env;
 pub use crate::utils::*;
 
 use text_io::read;
@@ -14,14 +16,15 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(args: &[String], todofile: String) -> Config {
-        if args.len() <= 1 {
-            eprintln!("{}", AVAILABLE_CMDS);
-            std::process::exit(1);
-        }
-        
-        let subcommand = args[1].clone();    
-        Config{subcommand, args: args.to_vec(), todofile }
+    pub fn new(mut args: env::Args, todofile: String) -> Result<Config, &'static str> {
+        args.next(); // skip program name
+
+        let subcommand = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Not enough arguments! Missing subcommand"),
+        };
+
+        return Ok(Config{subcommand, args: args.collect(), todofile })
     }
 }
 
@@ -53,7 +56,7 @@ pub fn handle_get_cmd(config: Config){
             print_primary_todo(&filename);
         },
         "title" | "-T" => {
-            if is_help { println!("{}", GET_PRIMARY_HELP); return; }
+            if is_help { println!("{}", GET_TITLE_HELP); return; }
             print_todo_by_title(&config.args, &filename)
         },
         _ => {

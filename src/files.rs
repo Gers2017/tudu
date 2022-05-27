@@ -1,4 +1,4 @@
-use std::{fs, io, env, process};
+use std::{fs, io, env};
 use std::error::Error;
 use crate::utils::prompt;
 
@@ -36,16 +36,15 @@ pub fn delete_file(filename: &str) -> io::Result<()> {
     Ok(())
 }
 
-pub fn get_todofile() -> String {
+pub fn get_tudu_filename() -> Result<String, &'static str> {
     let tudu_files = get_tudufiles().unwrap_or(vec![]);
     if tudu_files.is_empty() {
-        eprintln!("Not a single file has the \".tudu\" extension in the current directory");
-        process::exit(1);
+        return Err("Not a single file has the \".tudu\" extension in the current directory");
     }
+
     if tudu_files.len() == 1 {
-        return tudu_files.first().unwrap().to_owned();
+        return Ok(tudu_files.first().unwrap().to_owned());
     }
-    
     println!("Multiple tudu files detected");
-    return prompt(tudu_files);
+    return Ok(prompt(tudu_files));
 }
