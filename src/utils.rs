@@ -4,15 +4,15 @@ pub const AVAILABLE_CMDS: &str = "Available commands: \nget\nadd\nrm";
 pub const GET_SUBCMDS: &str = "Available subcommands:\nall\nprimary\ntitle <todo-title>";
 pub const RM_SUBCMDS: &str = "Available subcommands:\ntitle <todo-title>";
 
-pub const GET_ALL_HELP: &str = "gets all the tasks for the current tudu file";
-pub const GET_PRIMARY_HELP: &str = "gets the task with the highest priority";
-pub const GET_TITLE_HELP: &str = "gets a task by title (case insensitive)";
+pub const GET_ALL_HELP: &str = "Gets all the tasks for the current tudu file";
+pub const GET_PRIMARY_HELP: &str = "Gets the task with the highest priority";
+pub const GET_TITLE_HELP: &str = "Gets a task by title (case insensitive)";
 
-pub const ADD_HELP: &str = "Interactibly adds a new task to current the tudu file";
+pub const ADD_HELP: &str = "Interactively adds a new task to current the tudu file";
 
-pub const RM_ALL_HELP: &str = "removes all the tasks for the current tudu file";
-pub const RM_PRIMARY_HELP: &str = "removes the task with the highest priority";
-pub const RM_TITLE_HELP: &str = "removes a task by title (case insensitive)";
+pub const RM_ALL_HELP: &str = "Removes all the tasks for the current tudu file";
+pub const RM_PRIMARY_HELP: &str = "Removes the task with the highest priority";
+pub const RM_TITLE_HELP: &str = "Removes a task by title (case insensitive)";
 
 pub fn prompt(options: Vec<String>) -> String {
     for (i, word) in options.iter().enumerate() {
