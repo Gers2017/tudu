@@ -14,49 +14,33 @@ Command line tool to keep track of your tasks/todos
     - step 1
     - step 2
 ```
+
 - The text surrounded by square brackets is the title of the task. It should be short and descriptive
-- The number of exclamation marks is the priority of the task. A task can have zero exclamation marks
-- The indentation will be lost once the program adds a new task
+- The number of exclamation marks is the priority of the task. Tasks can have zero exclamation marks
+- The indentation is optional, just keep in mind that it'll be lost if the cli adds a new todo
 
 ## Usage
 
-Available commands
-- get
-- add
-- rm
+### Tudu cli
 
-### Get subcommands
-
-```
-tudu get -A | tudu get all
-```
-```
-tudu get -P | tudu get primary
-```
-```
-tudu get -T 'task' | tudu get title 'task'
+```sh
+tudu [get, rm, add] [--help] # subcomamnds and flags
 ```
 
-### Rm subcommands
+### Get SubCommand
 
-```
-tudu rm -A | tudu rm all
-```
-```
-tudu rm -P | tudu rm primary
-```
-```
-tudu rm -T 'task' | tudu rm title 'task'
+```sh
+tudu get [-a, --all, -p, --primary, -t, --title, --help]
 ```
 
-### Help flag
+### Rm SubCommand
 
-The help flag is available for the get and rm command.
-Use the `--help` or `-h` flag as the following example
+```sh
+tudu rm [-a, --all, -p, --primary, -t, --title, --help]
+```
 
-```
-tudu rm -A -h | tudu rm all --help
-```
-```
-tudu get title -h | tudu get -A --help
+### Add SubCommand
+
+```sh
+tudu add [--help]
 ```
