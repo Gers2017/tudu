@@ -4,8 +4,8 @@ use std::{fs, io};
 const MISSING_TODO_ERR: &str = "❌ No todo with title";
 const EMPTY_TODO_ERR: &str = "❌ Empty todo file. No todos in";
 
-pub fn get_todos_from_file(filename: &str) -> Vec<Todo> {
-    let read_res = fs::read_to_string(filename);
+pub fn get_todos_from_file(todofile: &str) -> Vec<Todo> {
+    let read_res = fs::read_to_string(todofile);
     if let Err(ref err) = read_res {
         eprint!("{}", err);
         return vec![];
@@ -74,8 +74,8 @@ pub fn filter_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
         .collect::<Vec<Todo>>();
 }
 
-pub fn save_todos(todos: &Vec<Todo>, filename: &str) -> io::Result<()> {
-    return fs::write(filename, todos_to_text(todos).as_str());
+pub fn save_todos(todos: &Vec<Todo>, todofile: &str) -> io::Result<()> {
+    return fs::write(todofile, todos_to_text(todos).as_str());
 }
 
 pub fn get_primary_todo(todofile: &str) -> Option<Todo> {
@@ -122,35 +122,35 @@ pub fn print_todo_by_title(title: &str, todofile: &str) {
     }
 }
 
-pub fn add_todo(filename: &str, todo: Todo) {
-    let mut todos = get_todos_from_file(filename);
+pub fn add_todo(todofile: &str, todo: Todo) {
+    let mut todos = get_todos_from_file(todofile);
     todos.push(todo);
     sort_todos_by_priority(&mut todos);
-    save_todos(&todos, filename).unwrap_or_else(|err| eprintln!("{}", err));
+    save_todos(&todos, todofile).unwrap_or_else(|err| eprintln!("{}", err));
 }
 
-pub fn remove_all_todos(filename: &str) {
-    fs::write(filename, "").unwrap_or_else(|err| eprintln!("{}", err));
+pub fn remove_all_todos(todofile: &str) {
+    fs::write(todofile, "").unwrap_or_else(|err| eprintln!("{}", err));
 }
 
-pub fn remove_primary_todo(filename: &str) {
-    let mut todos: Vec<Todo> = get_todos_from_file(filename);
+pub fn remove_primary_todo(todofile: &str) {
+    let mut todos: Vec<Todo> = get_todos_from_file(todofile);
 
     if todos.is_empty() {
-        eprintln!("{} {}\n", EMPTY_TODO_ERR, filename);
+        eprintln!("{} {}\n", EMPTY_TODO_ERR, todofile);
         return;
     }
 
     let removed_todo = todos.remove(0);
     println!("{} tudu was removed\n", removed_todo.title);
 
-    save_todos(&todos, filename).unwrap_or_else(|err| eprintln!("{}", err));
+    save_todos(&todos, todofile).unwrap_or_else(|err| eprintln!("{}", err));
 }
 
-pub fn remove_todo_by_title(title: &str, filename: &str) {
+pub fn remove_todo_by_title(title: &str, todofile: &str) {
     println!("❓ Searching by title {}...", title);
 
-    let mut todos = get_todos_from_file(filename);
+    let mut todos = get_todos_from_file(todofile);
     let indexes = todos
         .iter()
         .enumerate()
@@ -165,5 +165,5 @@ pub fn remove_todo_by_title(title: &str, filename: &str) {
 
     println!("Removing todo of title: {}", title);
     todos.remove(indexes[0]);
-    save_todos(&todos, filename).unwrap_or_else(|err| eprintln!("{}", err));
+    save_todos(&todos, todofile).unwrap_or_else(|err| eprintln!("{}", err));
 }
