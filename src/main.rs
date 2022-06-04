@@ -7,7 +7,6 @@ use tudu::todo::Todo;
 use tudu::{Commands, GetSubCommand, RmSubCommand, TuduCli};
 
 fn main() {
-    // RETURN PÄTHBUFF
     let todofile = get_tudu_filename().unwrap_or_else(|err| {
         eprintln!("{}", err);
         process::exit(1);

@@ -4,7 +4,6 @@ use std::{fs, io};
 const MISSING_TODO_ERR: &str = "❌ No todo with title";
 const EMPTY_TODO_ERR: &str = "❌ Empty todo file. No todos in";
 
-// MAKE THIS USE PATHBUFF
 pub fn get_todos_from_file(filename: &str) -> Vec<Todo> {
     let read_res = fs::read_to_string(filename);
     if let Err(ref err) = read_res {
