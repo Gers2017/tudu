@@ -1,51 +1,45 @@
-use std::{fs, io, env, process};
-use std::error::Error;
 use crate::utils::prompt;
+use std::ffi::OsString;
+use std::{env, io};
 
-type BoxResult<T> = Result<T,Box<dyn Error>>;
+pub fn get_tudufiles_from_dir() -> io::Result<Vec<String>> {
+    let tudu = OsString::from("tudu");
+    let entries = env::current_dir()?
+        .read_dir()?
+        .map(|res| res.map(|d| d.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
 
-pub fn get_tudufiles() -> BoxResult<Vec<String>> {
-    let mut tudufiles: Vec<String> = vec![];
-    
-    let entries = fs::read_dir(env::current_dir()?)?
-    .map(|res| res.map(|e| e.path()))
-    .collect::<Result<Vec<_>, io::Error>>()?;
-    
-    for p in entries {
-        if p.extension().map_or(false, |ext| ext == "tudu") {
-            let name = p.file_name().unwrap().to_owned();
-            tudufiles.push(String::from(name.to_string_lossy()));
-        }
+    return Ok(entries
+        .iter()
+        .filter(|p| p.is_file() && p.extension() == Some(&tudu))
+        .map(|p| String::from(p.file_name().unwrap().to_owned().to_string_lossy()))
+        .collect::<Vec<_>>());
+}
+
+pub fn get_tudu_filename() -> Result<String, &'static str> {
+    let get_files_result = get_tudufiles_from_dir();
+    if let Err(ref _err) = get_files_result {
+        return Err("Error at getting tudu files from current directory");
     }
-    
-    Ok(tudufiles)
-}
 
-pub fn read_file(filename: &str) -> io::Result<String> {
-    let contents = fs::read_to_string(filename)?;
-    Ok(contents)
-}
-
-pub fn write_file(filename: &str, contents: &str) -> io::Result<()> {
-    fs::write(filename, contents)?;
-    Ok(())
-}
-
-pub fn delete_file(filename: &str) -> io::Result<()> {
-    fs::remove_file(filename)?;
-    Ok(())
-}
-
-pub fn get_todofile() -> String {
-    let tudu_files = get_tudufiles().unwrap_or(vec![]);
-    if tudu_files.is_empty() {
-        eprintln!("Not a single file has the \".tudu\" extension in the current directory");
-        process::exit(1);
+    let files = get_files_result.unwrap();
+    if files.is_empty() {
+        return Err("Not a single file has the \".tudu\" extension in the current directory");
     }
-    if tudu_files.len() == 1 {
-        return tudu_files.first().unwrap().to_owned();
+
+    if files.len() == 1 {
+        return Ok(files.first().unwrap().to_owned());
     }
-    
-    println!("Multiple tudu files detected");
-    return prompt(tudu_files);
+
+    println!("Please choose a file");
+    let options = files.clone();
+
+    let option_index = prompt(&options);
+    if option_index.as_ref().is_none() {
+        return Err("Error: invalid range");
+    }
+
+    let index = option_index.unwrap();
+
+    return Ok(files[index].to_owned());
 }

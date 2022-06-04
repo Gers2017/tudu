@@ -12,20 +12,28 @@ impl Todo {
         if !title.starts_with("[") && !title.ends_with("]") {
             title = format!("[{}]", title);
         }
-        Todo{title, priority, items: vec![]}
+        Todo {
+            title,
+            priority,
+            items: vec![],
+        }
     }
-    
+
     pub fn add_item(&mut self, item: String) {
         self.items.push(item);
     }
-    
+
     pub fn match_title(&self, title: &str) -> bool {
         trim_title(self.title.to_lowercase()) == trim_title(title.to_lowercase())
     }
-        
+
     pub fn to_string(&self) -> String {
         let bangs = "!".repeat(*&self.priority as usize);
-        let todos = &self.items.iter().map(|i| format!("  {}", i)).collect::<Vec<_>>();
+        let todos = &self
+            .items
+            .iter()
+            .map(|i| format!("  {}", i))
+            .collect::<Vec<_>>();
         return format!("{} {}\n{}\n", &self.title, bangs, todos.join("\n"));
     }
 }
