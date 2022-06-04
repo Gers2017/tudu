@@ -1,6 +1,6 @@
 use crate::utils::prompt;
 use std::error::Error;
-use std::{env, fs, io};
+use std::{env, io};
 
 pub fn get_tudufiles_from_dir() -> Result<Vec<String>, Box<dyn Error>> {
     let entries = env::current_dir()?
@@ -15,21 +15,6 @@ pub fn get_tudufiles_from_dir() -> Result<Vec<String>, Box<dyn Error>> {
         .collect::<Vec<_>>());
 }
 
-pub fn read_file(filename: &str) -> io::Result<String> {
-    let contents = fs::read_to_string(filename)?;
-    Ok(contents)
-}
-
-pub fn write_file(filename: &str, contents: &str) -> io::Result<()> {
-    fs::write(filename, contents)?;
-    Ok(())
-}
-
-pub fn delete_file(filename: &str) -> io::Result<()> {
-    fs::remove_file(filename)?;
-    Ok(())
-}
-
 pub fn get_tudu_filename() -> Result<String, &'static str> {
     let tudu_files = get_tudufiles_from_dir().unwrap_or(vec![]);
     if tudu_files.is_empty() {
@@ -40,5 +25,5 @@ pub fn get_tudu_filename() -> Result<String, &'static str> {
         return Ok(tudu_files.first().unwrap().to_owned());
     }
     println!("Multiple tudu files detected");
-    return Ok(prompt(tudu_files));
+    return Ok(prompt(&tudu_files));
 }

@@ -1,17 +1,27 @@
-use crate::files::{read_file, write_file};
-use crate::todo::{is_todo_title, parse_title, Todo};
+use crate::todo::*;
+use std::{fs, io};
 
 const MISSING_TODO_ERR: &str = "❌ No todo with title";
 const EMPTY_TODO_ERR: &str = "❌ Empty todo file. No todos in";
 
-pub fn get_todos(filename: &str) -> Vec<Todo> {
-    let text = read_file(filename).unwrap(); // raw text
-                                             // only lines with content
+// MAKE THIS USE PATHBUFF
+pub fn get_todos_from_file(filename: &str) -> Vec<Todo> {
+    let read_res = fs::read_to_string(filename);
+    if let Err(ref err) = read_res {
+        eprint!("{}", err);
+        return vec![];
+    }
+
+    let text = read_res.unwrap();
     let lines: Vec<&str> = text
         .lines()
         .filter(|line| line.len() > 0)
         .map(|line| line.trim())
         .collect();
+
+    if lines.is_empty() {
+        return vec![];
+    }
 
     let temp_lines = lines.clone();
     let titles = temp_lines
@@ -34,26 +44,30 @@ pub fn get_todos(filename: &str) -> Vec<Todo> {
         }
     }
 
-    sort_todos(&mut todos);
-    todos
+    sort_todos_by_priority(&mut todos);
+    return todos;
 }
 
-fn sort_todos(todos: &mut Vec<Todo>) {
+pub fn sort_todos_by_priority(todos: &mut Vec<Todo>) {
     todos.sort_by(|a, b| b.priority.cmp(&a.priority));
 }
 
-fn todos_to_text(todos: &Vec<Todo>) -> String {
+pub fn sort_todos_by_title(todos: &mut Vec<Todo>) {
+    todos.sort_by(|a, b| a.title.cmp(&b.title));
+}
+
+pub fn todos_to_text(todos: &Vec<Todo>) -> String {
     if todos.is_empty() {
         return "".to_string();
     }
-    let str_todos = todos
+    return todos
         .iter()
         .map(|todo| todo.to_string())
-        .collect::<Vec<_>>();
-    return str_todos.join("\n");
+        .collect::<Vec<_>>()
+        .join("\n");
 }
 
-pub fn include_todos_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
+pub fn filter_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
     return todos
         .iter()
         .filter(|todo| todo.match_title(title))
@@ -61,96 +75,96 @@ pub fn include_todos_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
         .collect::<Vec<Todo>>();
 }
 
-pub fn exclude_todos_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
-    return todos
-        .clone()
+pub fn save_todos(todos: &Vec<Todo>, filename: &str) -> io::Result<()> {
+    return fs::write(filename, todos_to_text(todos).as_str());
+}
+
+pub fn get_primary_todo(todofile: &str) -> Option<Todo> {
+    let todos = get_todos_from_file(todofile);
+    return todos.first().map(|t| t.to_owned());
+}
+
+pub fn get_todo_by_title(title: &str, todofile: &str) -> Option<Todo> {
+    let todos = get_todos_from_file(todofile)
         .iter()
-        .filter(|todo| !todo.match_title(&title))
+        .filter(|res| res.match_title(title))
         .cloned()
-        .collect::<Vec<Todo>>();
+        .collect::<Vec<_>>();
+    return todos.first().map(|t| t.to_owned());
 }
 
-pub fn save_todos(todos: Vec<Todo>, filename: &str) {
-    let content = todos_to_text(&todos);
-    let result = write_file(filename, content.as_str());
-    if result.is_err() {
-        eprintln!("{}", result.unwrap_err());
+pub fn print_all_todos(todofile: &str, sort_by_title: bool, reversed: bool) {
+    let mut tudus = get_todos_from_file(todofile);
+    if sort_by_title {
+        sort_todos_by_title(&mut tudus);
+    }
+
+    if reversed {
+        tudus.reverse()
+    }
+
+    println!("{}", todos_to_text(&tudus));
+}
+
+pub fn print_primary_todo(todofile: &str) {
+    let primary = get_primary_todo(todofile);
+    match primary {
+        Some(todo) => println!("{}", todo.to_string()),
+        None => eprintln!("{} {}\n", EMPTY_TODO_ERR, todofile),
     }
 }
 
-pub fn print_all_todos(filename: &str) {
-    let todos = get_todos(filename);
-    println!("{}", todos_to_text(&todos));
-}
+pub fn print_todo_by_title(title: &str, todofile: &str) {
+    println!("❓ Searching by title \"{}\"", title);
 
-pub fn print_primary_todo(filename: &str) {
-    let todos: Vec<Todo> = get_todos(filename);
-    if todos.is_empty() {
-        eprintln!("{} {}\n", EMPTY_TODO_ERR, filename);
-        return;
+    match get_todo_by_title(title, todofile) {
+        Some(todo) => println!("{}", todo.to_string()),
+        None => eprintln!("{} \"{}\"\n", MISSING_TODO_ERR, title),
     }
-
-    let first = todos.first().unwrap();
-    println!("{}", first.to_string());
-}
-
-pub fn print_todo_by_title(title: &str, filename: &str) {
-    println!("❓ Searching by title {}...", title);
-
-    let todos: Vec<Todo> = get_todos(filename);
-    let selected_todos = include_todos_by_title(&todos, &title);
-
-    if selected_todos.is_empty() {
-        eprintln!("{} \"{}\"\n", MISSING_TODO_ERR, title);
-        return;
-    }
-
-    let first = selected_todos.first().unwrap();
-    println!("{}", first.to_string());
 }
 
 pub fn add_todo(filename: &str, todo: Todo) {
-    let mut todos = get_todos(filename);
+    let mut todos = get_todos_from_file(filename);
     todos.push(todo);
-    sort_todos(&mut todos);
-    save_todos(todos, filename);
+    sort_todos_by_priority(&mut todos);
+    save_todos(&todos, filename).unwrap_or_else(|err| eprintln!("{}", err));
 }
 
 pub fn remove_all_todos(filename: &str) {
-    save_todos(vec![], &filename);
+    fs::write(filename, "").unwrap_or_else(|err| eprintln!("{}", err));
 }
 
 pub fn remove_primary_todo(filename: &str) {
-    let todos: Vec<Todo> = get_todos(filename);
+    let mut todos: Vec<Todo> = get_todos_from_file(filename);
+
     if todos.is_empty() {
         eprintln!("{} {}\n", EMPTY_TODO_ERR, filename);
         return;
     }
 
-    let slice = &todos.as_slice()[1..];
-    let todos_to_save = slice.to_vec();
+    let removed_todo = todos.remove(0);
+    println!("{} tudu was removed\n", removed_todo.title);
 
-    let first = todos.first().unwrap();
-    println!("{} was removed\n", first.title);
-    save_todos(todos_to_save, filename);
+    save_todos(&todos, filename).unwrap_or_else(|err| eprintln!("{}", err));
 }
 
 pub fn remove_todo_by_title(title: &str, filename: &str) {
     println!("❓ Searching by title {}...", title);
 
-    let todos = get_todos(filename);
-    let todos_to_save = exclude_todos_by_title(&todos, &title);
+    let mut todos = get_todos_from_file(filename);
+    let indexes = todos
+        .iter()
+        .enumerate()
+        .filter(|res| res.1.match_title(title))
+        .map(|res| res.0)
+        .collect::<Vec<_>>();
 
-    for t in todos.iter() {
-        if t.match_title(&title) {
-            println!("{} was removed\n", t.title);
-        }
-    }
-
-    if todos_to_save.len() == todos.len() {
+    if indexes.is_empty() {
         eprintln!("{} \"{}\"\n", MISSING_TODO_ERR, title);
         return;
     }
 
-    save_todos(todos_to_save, filename);
+    println!("Removing todo of title: {}", title);
+    todos.remove(indexes[0]);
+    save_todos(&todos, filename).unwrap_or_else(|err| eprintln!("{}", err));
 }
