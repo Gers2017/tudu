@@ -1,4 +1,5 @@
 use argh;
+use std::path::PathBuf;
 use std::process;
 use text_io::read;
 use tudu::files::*;
@@ -7,7 +8,7 @@ use tudu::todo::Todo;
 use tudu::{Commands, GetSubCommand, RmSubCommand, TuduCli};
 
 fn main() {
-    let todofile = get_tudu_filename().unwrap_or_else(|err| {
+    let todofile: PathBuf = get_tudu_filename().unwrap_or_else(|err| {
         eprintln!("{}", err);
         process::exit(1);
     });
@@ -20,7 +21,7 @@ fn main() {
     }
 }
 
-pub fn handle_get_cmd(get: &GetSubCommand, todofile: &str) {
+pub fn handle_get_cmd(get: &GetSubCommand, todofile: &PathBuf) {
     if get.all {
         print_all_todos(todofile, get.sort_by_title, get.reversed);
     } else if get.primary {
@@ -30,7 +31,7 @@ pub fn handle_get_cmd(get: &GetSubCommand, todofile: &str) {
     }
 }
 
-pub fn handle_rm_cmd(rm: &RmSubCommand, todofile: &str) {
+pub fn handle_rm_cmd(rm: &RmSubCommand, todofile: &PathBuf) {
     if rm.all {
         println!("Are you sure about this? [Y/N]");
         let answer: String = read!("{}\n");
@@ -45,7 +46,7 @@ pub fn handle_rm_cmd(rm: &RmSubCommand, todofile: &str) {
     }
 }
 
-pub fn handle_add_cmd(todofile: &str) {
+pub fn handle_add_cmd(todofile: &PathBuf) {
     loop {
         println!("Name of the todo?");
         let name: String = read!("{}\n");

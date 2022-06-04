@@ -1,10 +1,13 @@
-use crate::todo::*;
-use std::{fs, io};
+use crate::{files::path_to_lossy, todo::*};
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 const MISSING_TODO_ERR: &str = "❌ No todo with title";
 const EMPTY_TODO_ERR: &str = "❌ Empty todo file. No todos in";
 
-pub fn get_todos_from_file(todofile: &str) -> Vec<Todo> {
+pub fn get_todos_from_file(todofile: &PathBuf) -> Vec<Todo> {
     let read_res = fs::read_to_string(todofile);
     if let Err(ref err) = read_res {
         eprint!("{}", err);
@@ -74,16 +77,16 @@ pub fn filter_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
         .collect::<Vec<Todo>>();
 }
 
-pub fn save_todos(todos: &Vec<Todo>, todofile: &str) -> io::Result<()> {
+pub fn save_todos<P: AsRef<Path>>(todos: &Vec<Todo>, todofile: P) -> io::Result<()> {
     return fs::write(todofile, todos_to_text(todos).as_str());
 }
 
-pub fn get_primary_todo(todofile: &str) -> Option<Todo> {
+pub fn get_primary_todo(todofile: &PathBuf) -> Option<Todo> {
     let todos = get_todos_from_file(todofile);
     return todos.first().map(|t| t.to_owned());
 }
 
-pub fn get_todo_by_title(title: &str, todofile: &str) -> Option<Todo> {
+pub fn get_todo_by_title(title: &str, todofile: &PathBuf) -> Option<Todo> {
     let todos = get_todos_from_file(todofile)
         .iter()
         .filter(|res| res.match_title(title))
@@ -92,7 +95,7 @@ pub fn get_todo_by_title(title: &str, todofile: &str) -> Option<Todo> {
     return todos.first().map(|t| t.to_owned());
 }
 
-pub fn print_all_todos(todofile: &str, sort_by_title: bool, reversed: bool) {
+pub fn print_all_todos(todofile: &PathBuf, sort_by_title: bool, reversed: bool) {
     let mut tudus = get_todos_from_file(todofile);
     if sort_by_title {
         sort_todos_by_title(&mut tudus);
@@ -105,15 +108,15 @@ pub fn print_all_todos(todofile: &str, sort_by_title: bool, reversed: bool) {
     println!("{}", todos_to_text(&tudus));
 }
 
-pub fn print_primary_todo(todofile: &str) {
+pub fn print_primary_todo(todofile: &PathBuf) {
     let primary = get_primary_todo(todofile);
     match primary {
         Some(todo) => println!("{}", todo.to_string()),
-        None => eprintln!("{} {}\n", EMPTY_TODO_ERR, todofile),
+        None => eprintln!("{} {}\n", EMPTY_TODO_ERR, path_to_lossy(todofile)),
     }
 }
 
-pub fn print_todo_by_title(title: &str, todofile: &str) {
+pub fn print_todo_by_title(title: &str, todofile: &PathBuf) {
     println!("❓ Searching by title \"{}\"", title);
 
     match get_todo_by_title(title, todofile) {
@@ -122,22 +125,22 @@ pub fn print_todo_by_title(title: &str, todofile: &str) {
     }
 }
 
-pub fn add_todo(todofile: &str, todo: Todo) {
+pub fn add_todo(todofile: &PathBuf, todo: Todo) {
     let mut todos = get_todos_from_file(todofile);
     todos.push(todo);
     sort_todos_by_priority(&mut todos);
     save_todos(&todos, todofile).unwrap_or_else(|err| eprintln!("{}", err));
 }
 
-pub fn remove_all_todos(todofile: &str) {
+pub fn remove_all_todos(todofile: &PathBuf) {
     fs::write(todofile, "").unwrap_or_else(|err| eprintln!("{}", err));
 }
 
-pub fn remove_primary_todo(todofile: &str) {
+pub fn remove_primary_todo(todofile: &PathBuf) {
     let mut todos: Vec<Todo> = get_todos_from_file(todofile);
 
     if todos.is_empty() {
-        eprintln!("{} {}\n", EMPTY_TODO_ERR, todofile);
+        eprintln!("{} {}\n", EMPTY_TODO_ERR, path_to_lossy(todofile));
         return;
     }
 
@@ -147,7 +150,7 @@ pub fn remove_primary_todo(todofile: &str) {
     save_todos(&todos, todofile).unwrap_or_else(|err| eprintln!("{}", err));
 }
 
-pub fn remove_todo_by_title(title: &str, todofile: &str) {
+pub fn remove_todo_by_title(title: &str, todofile: &PathBuf) {
     println!("❓ Searching by title {}...", title);
 
     let mut todos = get_todos_from_file(todofile);

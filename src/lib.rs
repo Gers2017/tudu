@@ -72,6 +72,7 @@ mod tests {
     use crate::todo::action::*;
     use crate::todo::*;
     use std::fs;
+    use std::path::PathBuf;
 
     #[test]
     fn test_get_todos_from_file() {
@@ -83,8 +84,8 @@ mod tests {
         ];
 
         save_todos(&_todos, todo_file).expect("Should create a todo file");
-
-        let todos = get_todos_from_file(todo_file);
+        let path = PathBuf::from(todo_file);
+        let todos = get_todos_from_file(&path);
         assert!(!todos.is_empty(), "Should not be empty");
         assert_eq!(todos[0].title, "[Bar]");
         assert_eq!(todos[0].priority, 10);
@@ -103,10 +104,12 @@ mod tests {
             Todo::new("[Bar]".to_string(), 10),
             Todo::new("[Foo]".to_string(), 1),
         ];
-        save_todos(&_todos, todo_file).expect("Should create a todo file");
-        remove_primary_todo(todo_file);
 
-        let primary = get_primary_todo(todo_file);
+        save_todos(&_todos, todo_file).expect("Should create a todo file");
+        let path = PathBuf::from(todo_file);
+        remove_primary_todo(&path);
+
+        let primary = get_primary_todo(&path);
         match primary {
             Some(todo) => debug_assert_ne!(todo.title.as_str(), "[Bar]"),
             None => eprintln!("Empty primary todo"),

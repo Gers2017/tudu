@@ -1,22 +1,30 @@
 use crate::utils::prompt;
 use std::ffi::OsString;
+use std::path::PathBuf;
 use std::{env, io};
 
-pub fn get_tudufiles_from_dir() -> io::Result<Vec<String>> {
+pub fn get_tudufiles_from_dir() -> io::Result<Vec<PathBuf>> {
     let tudu = OsString::from("tudu");
-    let entries = env::current_dir()?
+    return Ok(env::current_dir()?
         .read_dir()?
         .map(|res| res.map(|d| d.path()))
-        .collect::<Result<Vec<_>, io::Error>>()?;
-
-    return Ok(entries
-        .iter()
-        .filter(|p| p.is_file() && p.extension() == Some(&tudu))
-        .map(|p| String::from(p.file_name().unwrap().to_owned().to_string_lossy()))
-        .collect::<Vec<_>>());
+        .filter(|res| res.is_err() || res.as_ref().unwrap().extension() == Some(&tudu))
+        .collect::<io::Result<Vec<_>>>()?);
 }
 
-pub fn get_tudu_filename() -> Result<String, &'static str> {
+pub fn path_to_lossy(path: &PathBuf) -> String {
+    String::from(path.to_string_lossy())
+}
+
+pub fn paths_to_lossy(paths: &Vec<PathBuf>) -> Vec<String> {
+    return paths
+        .iter()
+        .cloned()
+        .map(|p| path_to_lossy(&p))
+        .collect::<Vec<_>>();
+}
+
+pub fn get_tudu_filename() -> Result<PathBuf, &'static str> {
     let get_files_result = get_tudufiles_from_dir();
     if let Err(ref _err) = get_files_result {
         return Err("Error at getting tudu files from current directory");
@@ -32,7 +40,7 @@ pub fn get_tudu_filename() -> Result<String, &'static str> {
     }
 
     println!("Please choose a file");
-    let options = files.clone();
+    let options = paths_to_lossy(&files);
 
     let option_index = prompt(&options);
     if option_index.as_ref().is_none() {
