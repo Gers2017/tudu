@@ -1,24 +1,18 @@
-use std::{fs, io, env};
-use std::error::Error;
 use crate::utils::prompt;
+use std::error::Error;
+use std::{env, fs, io};
 
-type BoxResult<T> = Result<T,Box<dyn Error>>;
+pub fn get_tudufiles_from_dir() -> Result<Vec<String>, Box<dyn Error>> {
+    let entries = env::current_dir()?
+        .read_dir()?
+        .map(|res| res.map(|d| d.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
 
-pub fn get_tudufiles() -> BoxResult<Vec<String>> {
-    let mut tudufiles: Vec<String> = vec![];
-    
-    let entries = fs::read_dir(env::current_dir()?)?
-    .map(|res| res.map(|e| e.path()))
-    .collect::<Result<Vec<_>, io::Error>>()?;
-    
-    for p in entries {
-        if p.extension().map_or(false, |ext| ext == "tudu") {
-            let name = p.file_name().unwrap().to_owned();
-            tudufiles.push(String::from(name.to_string_lossy()));
-        }
-    }
-    
-    Ok(tudufiles)
+    return Ok(entries
+        .iter()
+        .filter(|p| p.is_file() && p.extension().map_or(false, |ext| ext == "tudu"))
+        .map(|p| String::from(p.file_name().unwrap().to_owned().to_string_lossy()))
+        .collect::<Vec<_>>());
 }
 
 pub fn read_file(filename: &str) -> io::Result<String> {
@@ -37,7 +31,7 @@ pub fn delete_file(filename: &str) -> io::Result<()> {
 }
 
 pub fn get_tudu_filename() -> Result<String, &'static str> {
-    let tudu_files = get_tudufiles().unwrap_or(vec![]);
+    let tudu_files = get_tudufiles_from_dir().unwrap_or(vec![]);
     if tudu_files.is_empty() {
         return Err("Not a single file has the \".tudu\" extension in the current directory");
     }
