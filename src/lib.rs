@@ -76,47 +76,46 @@ mod tests {
 
     #[test]
     fn test_get_todos_from_file() {
-        let todo_file: &str = "__test_get_todos.tudu";
+        let todo_file = PathBuf::from("__test_get_todos.tudu");
 
         let _todos = vec![
             Todo::new("[Bar]".to_string(), 10),
             Todo::new("[Foo]".to_string(), 1),
         ];
 
-        save_todos(&_todos, todo_file).expect("Should create a todo file");
-        let path = PathBuf::from(todo_file);
-        let todos = get_todos_from_file(&path);
+        save_todos(&_todos, &todo_file).expect("Should create a todo file");
+        let todos = get_todos_from_file(&todo_file);
         assert!(!todos.is_empty(), "Should not be empty");
         assert_eq!(todos[0].title, "[Bar]");
         assert_eq!(todos[0].priority, 10);
 
         assert!(
-            fs::remove_file(todo_file).is_ok(),
+            fs::remove_file(&todo_file).is_ok(),
             "should delete todo file"
         );
     }
 
     #[test]
     fn test_save_todos() {
-        let todo_file: &str = "__test_save_todos.tudu";
+        let todo_file = PathBuf::from("__test_save_todos.tudu");
 
         let _todos = vec![
             Todo::new("[Bar]".to_string(), 10),
             Todo::new("[Foo]".to_string(), 1),
         ];
 
-        save_todos(&_todos, todo_file).expect("Should create a todo file");
-        let path = PathBuf::from(todo_file);
-        remove_primary_todo(&path);
+        save_todos(&_todos, &todo_file).expect("Should create a todo file");
 
-        let primary = get_primary_todo(&path);
+        remove_primary_todo(&todo_file);
+
+        let primary = get_primary_todo(&todo_file);
         match primary {
             Some(todo) => debug_assert_ne!(todo.title.as_str(), "[Bar]"),
             None => eprintln!("Empty primary todo"),
         }
 
         assert!(
-            fs::remove_file(todo_file).is_ok(),
+            fs::remove_file(&todo_file).is_ok(),
             "should delete todo file"
         );
     }

@@ -12,15 +12,15 @@ pub fn get_tudufiles_from_dir() -> io::Result<Vec<PathBuf>> {
         .collect::<io::Result<Vec<_>>>()?);
 }
 
-pub fn path_to_lossy(path: &PathBuf) -> String {
-    String::from(path.to_string_lossy())
+pub fn path_to_display(path: &PathBuf) -> String {
+    return path.display().to_string();
 }
 
-pub fn paths_to_lossy(paths: &Vec<PathBuf>) -> Vec<String> {
+pub fn paths_to_options(paths: &Vec<PathBuf>) -> Vec<String> {
     return paths
         .iter()
         .cloned()
-        .map(|p| path_to_lossy(&p))
+        .map(|p| path_to_display(&p))
         .collect::<Vec<_>>();
 }
 
@@ -40,7 +40,7 @@ pub fn get_tudu_filename() -> Result<PathBuf, &'static str> {
     }
 
     println!("Please choose a file");
-    let options = paths_to_lossy(&files);
+    let options = paths_to_options(&files);
 
     let option_index = prompt(&options);
     if option_index.as_ref().is_none() {

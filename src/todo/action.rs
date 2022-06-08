@@ -1,8 +1,5 @@
-use crate::{files::path_to_lossy, todo::*};
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-};
+use crate::{files::path_to_display, todo::*};
+use std::{fs, io, path::PathBuf};
 
 const MISSING_TODO_ERR: &str = "❌ No todo with title";
 const EMPTY_TODO_ERR: &str = "❌ Empty todo file. No todos in";
@@ -77,7 +74,7 @@ pub fn filter_by_title(todos: &Vec<Todo>, title: &str) -> Vec<Todo> {
         .collect::<Vec<Todo>>();
 }
 
-pub fn save_todos<P: AsRef<Path>>(todos: &Vec<Todo>, todofile: P) -> io::Result<()> {
+pub fn save_todos(todos: &Vec<Todo>, todofile: &PathBuf) -> io::Result<()> {
     return fs::write(todofile, todos_to_text(todos).as_str());
 }
 
@@ -112,7 +109,7 @@ pub fn print_primary_todo(todofile: &PathBuf) {
     let primary = get_primary_todo(todofile);
     match primary {
         Some(todo) => println!("{}", todo.to_string()),
-        None => eprintln!("{} {}\n", EMPTY_TODO_ERR, path_to_lossy(todofile)),
+        None => eprintln!("{} {}\n", EMPTY_TODO_ERR, path_to_display(todofile)),
     }
 }
 
@@ -140,7 +137,7 @@ pub fn remove_primary_todo(todofile: &PathBuf) {
     let mut todos: Vec<Todo> = get_todos_from_file(todofile);
 
     if todos.is_empty() {
-        eprintln!("{} {}\n", EMPTY_TODO_ERR, path_to_lossy(todofile));
+        eprintln!("{} {}\n", EMPTY_TODO_ERR, path_to_display(todofile));
         return;
     }
 
