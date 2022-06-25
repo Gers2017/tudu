@@ -8,9 +8,6 @@ use argh::FromArgs;
 #[derive(FromArgs, PartialEq, Debug)]
 /// Tudu cli, Top Command
 pub struct TuduCli {
-    #[argh(switch, short = 'j', description = "jumps")]
-    pub jump: bool,
-
     #[argh(subcommand)]
     pub command: Commands,
 }
